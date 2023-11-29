@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import GlobalStyles from "./styles/global";
+import Providers from "./providers";
 
 const roboto = Roboto({
   weight: "400",
@@ -19,9 +20,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-br" className={roboto.className}>
+      <head>
+        <link rel="shortcut icon" href="/favicon.png" />
+      </head>
       <body>
         <GlobalStyles />
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
