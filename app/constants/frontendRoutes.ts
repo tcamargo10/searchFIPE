@@ -1,4 +1,4 @@
 export const FrontendRoutes = {
   HOME: "/",
-  SEARCH: "/pesquisar",
+  SEARCH: "/busca",
 };
