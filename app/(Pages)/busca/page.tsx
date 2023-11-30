@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@mui/material";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import Swal from "sweetalert2";
 
 // COMPONENTS
 import { CustomAutoComplete } from "../../components/AutoComplete";
 
 // CONSTANTS
 import { FrontendRoutes } from "../../constants/frontendRoutes";
+
+// CONTEXT
+import { useSearchFIPE } from "../../context/SearchFIPE";
 
 // INTERFACES
 import { IAutoCompleteProps } from "../../interfaces/app";
@@ -23,17 +27,15 @@ import * as S from "./styles";
 
 export default function Busca() {
   const router = useRouter();
-  const queryClient = useQueryClient();
 
-  const [selectedBrand, setSelectedBrand] = useState<IAutoCompleteProps | null>(
-    null
-  );
-  const [selectedModel, setSelectedModel] = useState<IAutoCompleteProps | null>(
-    null
-  );
-  const [selectedYear, setSelectedYear] = useState<IAutoCompleteProps | null>(
-    null
-  );
+  const {
+    selectedBrand,
+    selectedModel,
+    selectedYear,
+    setSelectedBrand,
+    setSelectedModel,
+    setSelectedYear,
+  } = useSearchFIPE();
 
   const formatToAutoComplete = async (data: IBranchs[]) => {
     return data.map((item) => {
@@ -99,7 +101,11 @@ export default function Busca() {
       responseModels.isError ||
       responseYears.isError
     ) {
-      alert("Erro ao buscar dados!");
+      Swal.fire({
+        title: "Erro!",
+        text: "Erro ao buscar dados, tente novamente",
+        icon: "error",
+      });
     }
   }, [responseBrands.isError, responseModels.isError, responseYears.isError]);
 
@@ -126,13 +132,15 @@ export default function Busca() {
             onChange={(value) => setSelectedModel(value)}
           />
 
-          <CustomAutoComplete
-            label="Ano"
-            isLoading={responseYears.isLoading}
-            options={responseYears.data || []}
-            value={selectedYear}
-            onChange={(value) => setSelectedYear(value)}
-          />
+          {selectedModel?.id && (
+            <CustomAutoComplete
+              label="Ano"
+              isLoading={responseYears.isLoading}
+              options={responseYears.data || []}
+              value={selectedYear}
+              onChange={(value) => setSelectedYear(value)}
+            />
+          )}
 
           <Button
             disabled={!selectedBrand || !selectedModel || !selectedYear}

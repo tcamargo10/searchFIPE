@@ -19,16 +19,21 @@ export const Box = styled.div`
 `;
 
 export const Title = styled.h3`
-  margin-bottom: 10px;
+  font-weight: bold;
+  margin-bottom: 15px;
 `;
 
 export const Value = styled.div`
-  padding: 10px;
-  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 10px 20px;
+  border-radius: 40px;
   color: white;
   background-color: #00a38c;
 `;
 
 export const Text = styled.span`
-  margin-bottom: 10px;
+  font-size: 12px;
+  color: #8f8a84;
+  margin-top: 15px;
 `;
