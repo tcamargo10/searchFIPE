@@ -21,6 +21,13 @@ export const Box = styled.div`
 export const Title = styled.h3`
   font-weight: bold;
   margin-bottom: 15px;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    h3 {
+      font-size: 16px;
+    }
+  }
 `;
 
 export const Value = styled.div`

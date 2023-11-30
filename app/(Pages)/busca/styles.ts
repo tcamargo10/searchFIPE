@@ -16,6 +16,13 @@ export const Box = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    h3 {
+      font-size: 17px;
+    }
+  }
 `;
 
 export const Form = styled.form`

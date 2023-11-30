@@ -54,7 +54,7 @@ const Resultado = () => {
     <S.Container>
       {isLoading && <CircularProgress color="inherit" size={20} />}
 
-      {!isLoading && (
+      {!isLoading && data && (
         <S.Box>
           <S.Title>{`Tabela Fipe: Preço ${data?.Marca} ${data?.Modelo} ${data?.AnoModelo}`}</S.Title>
           <S.Value>{data?.Valor}</S.Value>
