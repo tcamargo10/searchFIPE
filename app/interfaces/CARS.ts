@@ -1,4 +1,4 @@
-export interface IBrands {
+export interface IBranchs {
   codigo: string;
   nome: string;
 }

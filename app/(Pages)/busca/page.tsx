@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@mui/material";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 // COMPONENTS
 import { CustomAutoComplete } from "../../components/AutoComplete";
@@ -12,7 +13,7 @@ import { FrontendRoutes } from "../../constants/frontendRoutes";
 
 // INTERFACES
 import { IAutoCompleteProps } from "../../interfaces/app";
-import { IBrands, IModelsResponse, IYears } from "../../interfaces/CARS";
+import { IBranchs, IModelsResponse, IYears } from "../../interfaces/CARS";
 
 // SERVICES
 import ApiService from "../../service/api";
@@ -22,13 +23,8 @@ import * as S from "./styles";
 
 export default function Busca() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const [loadingBrand, setLoadingBrand] = useState(false);
-  const [loadingModel, setLoadingModel] = useState(false);
-  const [loadingYear, setLoadingYear] = useState(false);
-  const [brands, setBrands] = useState<IAutoCompleteProps[]>([]);
-  const [models, setModels] = useState<IAutoCompleteProps[]>([]);
-  const [years, setYears] = useState<IAutoCompleteProps[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<IAutoCompleteProps | null>(
     null
   );
@@ -39,89 +35,73 @@ export default function Busca() {
     null
   );
 
-  const getBrands = async () => {
-    setLoadingBrand(true);
-    const response = await ApiService.get<IBrands[]>("/carros/marcas");
-
-    if (response) {
-      const formattedList = response.data.map((item) => {
-        return { id: item.codigo, label: item.nome };
-      });
-
-      setBrands(formattedList);
-    }
-
-    setLoadingBrand(false);
+  const formatToAutoComplete = async (data: IBranchs[]) => {
+    return data.map((item) => {
+      return { id: item.codigo, label: item.nome };
+    });
   };
 
-  const getModels = async () => {
-    setLoadingModel(true);
-    const response = await ApiService.get<IModelsResponse>(
-      `/carros/marcas/${selectedBrand?.id}/modelos`
-    );
+  const responseBrands = useQuery<IAutoCompleteProps[]>({
+    queryKey: ["brands"],
+    queryFn: async () => {
+      const response = await ApiService.get<IBranchs[]>("/carros/marcas");
+      return formatToAutoComplete(response.data);
+    },
+  });
 
-    if (response) {
-      const formattedList = response.data.modelos.map((item) => {
-        return { id: item.codigo, label: item.nome };
-      });
+  const responseModels = useQuery<IAutoCompleteProps[]>({
+    queryKey: ["models", selectedBrand],
+    queryFn: async () => {
+      const response = await ApiService.get<IModelsResponse>(
+        `/carros/marcas/${selectedBrand?.id}/modelos`
+      );
+      return formatToAutoComplete(response.data.modelos);
+    },
+    enabled: !!selectedBrand?.id,
+  });
 
-      setModels(formattedList);
-    }
-
-    setLoadingModel(false);
-  };
-
-  const getYears = async () => {
-    setLoadingYear(true);
-    const response = await ApiService.get<IYears[]>(
-      `/carros/marcas/${selectedBrand?.id}/modelos/${selectedModel?.id}/anos`
-    );
-
-    if (response) {
-      const formattedList = response.data.map((item) => {
-        return { id: item.codigo, label: item.nome };
-      });
-
-      setYears(formattedList);
-    }
-
-    setLoadingYear(false);
-  };
-
-  useEffect(() => {
-    getBrands();
-  }, []);
+  const responseYears = useQuery<IAutoCompleteProps[]>({
+    queryKey: ["years", selectedModel],
+    queryFn: async () => {
+      const response = await ApiService.get<IYears[]>(
+        `/carros/marcas/${selectedBrand?.id}/modelos/${selectedModel?.id}/anos`
+      );
+      return formatToAutoComplete(response.data);
+    },
+    enabled: !!selectedModel?.id,
+  });
 
   useEffect(() => {
     setSelectedModel(null);
     setSelectedYear(null);
-    setModels([]);
-    setYears([]);
 
     if (!selectedBrand) {
       return;
     }
-
-    getModels();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBrand]);
 
   useEffect(() => {
     setSelectedYear(null);
-    setYears([]);
 
     if (!selectedModel) {
       return;
     }
-
-    getYears();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedModel]);
 
   const submitForm = (event: any) => {
     event.preventDefault();
     router.push(FrontendRoutes.FIPE);
   };
+
+  useEffect(() => {
+    if (
+      responseBrands.isError ||
+      responseModels.isError ||
+      responseYears.isError
+    ) {
+      alert("Erro ao buscar dados!");
+    }
+  }, [responseBrands.isError, responseModels.isError, responseYears.isError]);
 
   return (
     <S.Container>
@@ -132,24 +112,24 @@ export default function Busca() {
         <S.Form onSubmit={submitForm}>
           <CustomAutoComplete
             label="Marca"
-            isLoading={loadingBrand}
-            options={brands}
+            isLoading={responseBrands.isLoading}
+            options={responseBrands.data || []}
             value={selectedBrand}
             onChange={(value) => setSelectedBrand(value)}
           />
 
           <CustomAutoComplete
             label="Modelo"
-            isLoading={loadingModel}
-            options={models}
+            isLoading={responseModels.isLoading}
+            options={responseModels.data || []}
             value={selectedModel}
             onChange={(value) => setSelectedModel(value)}
           />
 
           <CustomAutoComplete
             label="Ano"
-            isLoading={loadingYear}
-            options={years}
+            isLoading={responseYears.isLoading}
+            options={responseYears.data || []}
             value={selectedYear}
             onChange={(value) => setSelectedYear(value)}
           />
